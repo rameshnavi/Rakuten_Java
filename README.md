@@ -1,5 +1,4 @@
 # Rakuten_Java
-
 Java Training
 
 
@@ -527,3 +526,600 @@ OOP ==> Object Oriented Programming
 			// normal method call is
 			obj.method(); ==> p.getId()
 		}
+================================================================
+
+Day 2
+------
+	Recap:
+		instance variables ==> Heap Area
+		static variables ==> Class Variables ==> Class Data
+		local variables ==> Stack
+
+		instance methods ==> using objects to invoke them
+			==> implicit "this" as first argument
+		static methods ==> using class to invoke them
+			==> can't access "this"
+
+		--------
+		Package: Logical Grouping of classes
+		Inheritance
+			Generalization and Specializtion relationship
+			"extends" keyword is used to inherit
+			-> Polymorphism and dynamic binding [ isExpensive()]
+		Relflection API
+			--> We invoked methods
+	---------------------------------------
+
+	Few classes are too generic, objects of such type doesn't exist in real world, but they are meant only for
+	Generalizzation.
+		Account, Product
+
+		Such classes should be marked as "abstract". Once the class is marked "abstract", you can't instantiate
+
+		abstract class Product {
+
+		}
+
+		Product p = new Product(); // compilation ERROR
+
+		class Mobile extends Product {} // valid
+		new Mobile()
+
+		===========
+
+		
+			Product.java
+
+			public boolean isExpensive() {
+				return false;
+			}
+
+			Abstract Methods:
+			Methods which doesn't have body
+
+			Product.java
+
+			public abstract boolean isExpensive(); // in C++ it's called pure virtual machine
+
+			Why to have this method in Product.java
+				1) We can achieve Polymorphic behaviour
+					for (Product p : products) {
+						if (p.isExpensive()) {
+
+				2) Enforce all inherited class to compulsorly override this method
+
+		==========
+
+			Why in Object.java
+				equals() is not made abstract?
+				this method is useful only for entities and not for any other type of objects
+
+		=============
+
+		Realization Relationship
+			A component/Object will realize the specification/protocols defined by other in order to communicate
+
+			In Real world 2 different types of objects are communicating with the help of "interface"
+				--> HDMI, VGA, USB, COM, LPT
+
+				Mechanism used by each object to generate/consume might be different
+
+		In Software Industry we use "interfaces" to establish communication between different objects.
+
+		How does an interface look like in Java:
+
+			interface interfaceName {
+				constants
+				abstract methods
+			}
+
+
+			interface EmployeeDao {
+				void register(Employee e);
+				//boolean login(String username, String password);
+			}
+
+			All methods in interface are "public" and "abstract"
+
+			public abstract void register(Employee e);
+
+			class EmployeeDaoMySQLImpl implements EmployeeDao {
+				public void register(Employee e) {
+					// logic
+				}
+			}
+
+			// implements -- > Realize
+			class EmployeeDaoMongoImpl implements EmployeeDao {
+				public void register(Employee e) {
+					// logic
+				}
+			}
+
+			Why program to interface?
+				a) DESIGN
+				b) IMPLEMENTATION
+				c) TESTING
+				d) INTEGRATION
+				e) loose coupling
+
+			=====================
+			Issues with changing code in client:
+
+			1) In real-world clients are many
+			2) clients are of different kinds : Mobile, Web, Standalone
+			3) Exposing which type of logic is used to client
+
+
+			Solution:
+				Lets have a configuration file, which can be used by all types of clients
+
+			===========
+
+			Factory classes: are classes which create objects and return
+
+			MobileDao dao = new MobileDaoSqlImpl();
+
+			change to
+
+			MobileDao dao = MobileDaoFactory.getMobileDao();
+
+			-------
+			We have read the class name from properites files
+
+			We need to create object of this
+
+			If we know the class name in advance:
+				new ClassName()
+				new Product()
+				new MobileDaoSQLImpl();
+
+			--
+			If we don't know the class name in advance i can still create object using Reflection APIs
+
+			String NAME = "com.rakuten.prj.dao.MobileDaoSqlImpl";
+
+			Class.forName(NAME); // loads the class into JVM
+
+			OR
+				// create an object of class [ refered by NAME ] which is loaded
+				Class.forName(NAME).newInstance();
+
+=========================================================================
+	Product[] products = new Product[5]; // Array of 5 Pointers
+		products[0] = new Tv(133, "Sony Bravia", 135000.00, "LED"); // upcasting
+		products[1] = new Mobile(453, "MotoG", 12999.00, "4G");
+		products[2] = new Tv(634, "Onida Thunder", 3500.00, "CRT");
+		products[3] = new Mobile(621, "iPhone XR", 99999.00, "4G");
+		products[4] = new Mobile(844, "Oppo", 9999.00, "4G");
+
+	String[] names = {"George","Aamir","James","Bharath"};
+
+	int[] nos = {56,22,6,2,772};
+
+	We need to sort them. What do you do?
+		We compare.
+
+		for sorting, finding max, min we should have the objects capabale of compare
+
+		a.compareTo(b); // method can return a number, if returned values >0, <0 or ==0
+
+
+		//OCP
+		void sort(Comparable[] elems) {
+			for(i = 0; ....) {
+				for(j = i+1; ....) {
+					if(elems[i].compareTo(elems[j]) > 0) {
+						// swap logic
+					}
+				}
+			}
+		}
+
+	============================================================
+
+	interface Dance {
+		dance();
+	}
+
+	interface Fight {
+		fight();
+	}
+
+	interface Swim {
+		swim();
+	}
+
+	// Actor is capable of dancing
+	class Actor implements Dance {
+		dance() { // ...}
+	}
+
+	// hero is a actor, every actor knows to dance
+	// hero should alos know to dance
+	// Hero is also capable of fighting and swiming
+	class Hero extends Actor implements Fight, Swim {
+		fight() {}
+	 	swim() {}
+	 }
+
+	 ======================================================================================================
+
+	 Generic classes: <>
+
+	 Generic type can only be object type, not primitive
+
+	 public class Rectangle <T> {
+	 		T width;
+	 		T breadth;
+
+	 		//
+	 }
+
+	 Rectangle<Integer> r1 = new Rectangle<Integer>(4,5);
+
+	 Rectangle<Double> r2 = new Rectangle<Double>(1.4,3.5);
+
+	 Rectangle<String> r3 = new Rectangle<String>("Hello","World");
+
+	 ---------
+
+	 class IRectangle {
+	 	int width;
+	 	int breadth;
+	 }
+
+	 class DRectangle {
+	 	double width;
+	 	double breadth;
+	 }
+============================================================================================================
+
+	Note on Exception handling:
+
+	An abnormal condition that arises during program execution is an exception.
+
+	In Java, exception is an object. It gives me the following details:
+		a) What went wrong
+		b) Why
+		c) Where
+
+	==========
+
+	Handle exceptions in 2 ways:
+
+		1) conditional statement [ Recommended]
+				int x = 10;
+				int y = 0;
+				if(y != 0 ) System.out.println("Result : " + (x/y));
+
+		2) try-catch syntax
+				try {
+					int x = 10;
+					int y = 0;
+					System.out.println("Result : " + (x/y));
+				} catch(ArithmeticExeption ex) {
+					s.o.p("problem :-(");
+				}
+==================================
+
+		Exceptions can be classfied as Checked or Unchecked.
+
+		Unchecked exceptions happen for reasons with JRE.
+			--> divide by zero
+			--> Null Pointer exception
+				Product p; // new Product();
+				p.setId(1); // NullPointerException
+			--> ArrayIndexOutOfBoundsException
+				int[] elems = {5,6};
+				int x = elems[3]; // we have only 0 and 1 index
+
+			--> handle it with conditional statement
+
+		Checked exceptions are a result of issues outside JRE
+			--> SQLException
+				Uniquekey constraint
+				Connection down
+
+			--> IOException
+				filenotfoundexception
+				SocketConnection
+			--> ClassNotfoundException
+
+			--> should be handled using try-catch
+==============================================================
+	
+	Resume @3:00 after Lunch Break
+
+	---------------------------------------------
+	Java Collection Framework [ DataStructures]
+
+    Data Containers: array is a data container
+
+    int[] data = new int[400];
+
+    String[] names = {"a","b","c"}
+
+    Limitations:
+    	a) Size is fixed, it can't grow nor shrink
+    	b) need contiguous memory location
+    	c) adding/removing from arbitrary position is difficult
+
+    	in an array of size 400, if i need to add an element at 100th postion, we need to move all elements after 100th
+
+    Java Collection Framework --> Data Containers --> DataStructures
+    	1) interfaces
+    	2) implementation classes
+    	3) Algorithm / utility classes
+
+    	----
+    	String[] names = {"George", "Angelina", "Brad", "Lee", "Chris"};
+
+    	Comparable is for natural comparison, this will be a part of object
+    		Product, String had comparasion code [ compareTo()]
+
+    	Comparator is for custom comparison, generally this code goes in client
+    		logic is in client
+
+
+    	Sorted order: Angelina, Brad, Chris, George, Lee [Natural ] ==> Comparable
+
+    	why not: Lee, Brad, Chris, George, Angelina [ Custom] ==> Comparator
+
+    	-------------------------------------------------------
+
+    	public interface Comparator<T> {
+    	    int compare(T o1, T o2);
+    	}
+
+    	class LengthComparator implements Comparator<String> {
+
+    		public int compare(String o1, String o2) {
+    			return o1.length() - o2.length();
+    		}
+    	}
+
+    	String[] names = {"George", "Angelina", "Brad", "Lee", "Chris"};
+		
+		//Arrays.sort(names);
+
+		Arrays.sort(names, new LengthComparator());
+
+		---------
+
+		Anonymous class: 
+			a class without a name
+			==> can be created using an interface / abstract class
+
+			new Comparator(); // ERROR, you can't create object of interface
+
+			new Comparator<String>() {
+				public int compare(String o1, String o2) {
+    				return o1.length() - o2.length();
+    			}
+			}
+			----------------------
+
+
+			class Employee {
+				firstName;
+				lastName;
+				email;
+				age;
+			}
+			FirtNameComparator.java
+			class FirtNameComparator implements Comparator {
+
+			}
+			LastNameComparator
+			class LastNameComparator implements Comparator {
+
+			}
+			EmailComparator.java
+			class EmailComprator implements Compartor {
+
+			}
+
+		----------------------
+
+		interface Flyable {
+			void fly();
+		}
+
+		class Bird implements Flyable {
+			state and behaviour
+			public void fly() {
+
+			}
+		}
+
+		class AeroPlane implements Flyable {
+			state and behaviour
+			public void fly() {
+
+			}
+		}
+
+		Flyable f1 = new AeroPlane();
+
+		Flyable f2 = new Bird();
+
+		Flyable f3 = new Bird();		
+
+
+		Flyable f = new Flyable() {
+			public void fly() {
+				try jumping from 10th floor!!!
+			}
+		}
+
+		============================
+
+		Java 8 introduced Lambda expression as a shorter form for anonymous class.
+
+		interface Flyable {
+			void fly();
+		}
+
+		//Anonymous class
+		Flyable f = new Flyable() {
+			public void fly() {
+				try jumping from 10th floor!!!
+			}
+		}
+
+		Java 8 Lambda expression:
+		Flyable f =  () -> {
+				try jumping from 10th floor!!!
+			};
+
+		Limitation:
+		Lambda's can be used only on FunctionalInterface. 
+		A FunctionalInterface is one which has only one method to be 
+		defined.
+
+		---------------
+
+
+		Collections are Iterable
+
+		Iterator has the follwoing methods: ptr = first; ptr != null; ptr = ptr = ptr->next
+			boolean hasNext();
+			Object next();
+			Object remove();
+
+		============================
+
+		List 										Set
+	1) supports duplicates 							Unique
+	2) index based operations support 				not-supported
+
+		list.remove(20);
+		list.add(3,"A");
+		list.get(34);
+	3) ordered 										not-ordered
+	4) re-order
+		sort, shuffle, reverse 						does not support
+
+
+		class ArrayList implements List {
+
+		}
+
+		class LinkedList implements List {
+
+		}
+
+
+		List list = new ArrayList();
+		List list = new LinkedList();
+		List list = new ApacheList...();
+
+		----------
+
+		Bad Code:
+					List list = new ArrayList();
+
+					list.add("a");
+					list.add(3);
+					list.add(new Product());
+
+					This collection is not typesafe
+
+					for(Object o : list) {
+						if(o instanceof String) {
+							String s = (String) o;
+						} else if( o instanceof Product) {
+							Product p = (Product) o;
+						}
+						...
+					}
+		Good Code:
+				List<String> list = new ArrayList<>();
+
+				list.add("a");
+				list.add(3); // error
+
+		-------------------------------------------------------------------
+
+		Functional Style of Programming
+		--------------------------------
+			OOP
+				methods are tightly coupled to state of object
+				deposit(double amt) {
+					this.balance += amt;
+				}
+
+
+			Functional Style of programming
+				logic is independent of any objects
+				uses high Order functions.
+
+
+		High Order Functions:
+			a) Functions which accept other functions as arguments
+			b) function returns a function
+
+			--> Treat function as first-class member similar to primitive or object
+			======================================
+
+		List<Product> products = new ArrayList<>();
+		products.add(new Product(645, "Hp Laptop", 135000.00, "computer"));
+		products.add(new Product(224, "iPhone", 98000.00, "mobile"));
+		products.add(new Product(834, "Logitech Mouse", 600.00, "computer"));
+		products.add(new Product(5, "Sony Bravia", 125000.00, "tv"));
+		products.add(new Product(912, "One Plus", 32000.00, "mobile"));
+		products.add(new Product(88, "HP Printer", 19000.00, "computer"));
+
+
+		predicate = (p) -> p.getCategory().equals("mobile");
+
+			filter(elems, predicate) {
+				create an empty container;
+					loop thro elems
+						if predicate
+							add to container;
+					end loop
+				return container;
+			}	
+
+		=========================
+
+		Commonly used HOF:
+			a) filter
+				subset
+			b) map
+				transform the data
+			c) reduce
+				to get aggregate
+					like [ sum, count, avg, min, max]
+			d) forEach
+				to consume
+			c) collect
+				data comming from stream collect into a container
+			d) skip
+			e) limit
+
+		================
+
+		Java 8 pre-defined functionalinterfaces:
+			Predicate, 	Function, BiFunction, Supplier, Consumer
+
+			Predicate:
+
+			Predicate p = (arg) -> true;
+
+		In JAva HOF can be be applied on streams 
+		Stream is a channel along which data flows [ Network, Database, File, Collection]
+
+	============
+
+		Terminal functions: collect, reduce, forEach
+		Intermediary functions : map, filter, flatMap, skip , limit
+
+
+	find total of all mobiles?
+	
+
+
+
