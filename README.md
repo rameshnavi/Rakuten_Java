@@ -1121,5 +1121,439 @@ Day 2
 	find total of all mobiles?
 	
 
+=====================================
+
+	Day 3
+	=====
+
+	List<T> list = new ArrayList<>(); or new LinkedList<>(); or going forward
+		we may also use Google Guava or VAVR collection.
+
+	ArrayList<T> list = new ArrayList<>(); // tightly coupled to ArrayList, Avoid this
+
+	Always program to interface	
+ 
+ 	Lambda ==> for functional interface, ==> functional style programming
+
+ 	==============
+
+ 		HashCode?
+
+ 			==> Numerical representation of an object.
+ 			Rules:
+ 				1) two similar objects should have same hashcode
+ 				2) two objects with different content can also have same hashcode
+
+ 		String s1 = new String("Hello");
+		System.out.println(s1.hashCode());//69609650
+		
+		String s2 = new String("Hello");
+		System.out.println(s2.hashCode()); //69609650
+		
+		String s3 = new String("Aa");
+		String s4 = new String("BB");
+		
+		System.out.println(s3.hashCode()); // 2112
+		System.out.println(s4.hashCode()); // 2112
 
 
+		Bad HashCode:
+
+			class Rectangle  {
+				width; breadth;
+
+				public int hashCode() {
+					return width * breadth;
+				}
+			}
+
+			Rectangle 4 x  5 ===> 20 hashcode
+			Rectangle 5 x  4 ===> 20 hashcode
+			Rectangle 10 x  2 ===> 20 hashcode
+			Rectangle 20 x  1 ===> 20 hashcode
+
+		In Object.java default implementation of hashCode() is available, it gives the address of the object.
+
+		============
+
+		Hash based data containers they depend on hashCode() and equals() to identitfy duplicates
+
+		Set based datacontainers doesn't support sorting, reversing, shuffling
+
+		==========
+
+		TreeSet ==> do a self study
+
+		==========
+
+		Map is a key/value pair
+			==> Dictionary
+			==> Registry ==> DNS Server, OS Registry
+			==> Keeping track of login users
+
+		DNS Registry
+		Key will be IP address, Value will be the domain name
+
+		Key is unique, values can be duplicate
+
+		SessionStorage
+		Category wise storing of products
+		Map<String, List<Product>> 
+
+		HTTP Headers
+			Accept: application/json
+		=================
+
+		List and Map are widely used
+		===============================================================================
+
+		Java Concurrent Programming [ Multi-threaded application]
+		-----
+			A Process is a program in execution. Every process should have at least one unit of work.
+			Thread --> Unit of work
+			In single threaded application we have only main thread.
+
+			Notepad, Calculator are examples of Single threaded application.
+
+			Multi-threaded application will have many units of work concurrently executing
+			Examples: Eclipse, Browser, MS-Word
+
+			MS-Word: Editing is one thread, Spell check, Grammer check, Auto Saving
+
+			Browser: Network thread, Render thread [ take the data, parse it and render], Event Thread
+
+		--------------------
+
+			Each Thread has a seperate stack, they share objects created and loaded classs.
+
+			Example:
+				In MSWord, Document before saving to file is in memory [ heap area]
+				for this we need Document.java ==> Class
+
+				Document d = new Documnet(); // heap
+
+				On this: Edit thread can work, spell check can work, Grammer check
+
+		--------------
+			Why do I need Multi-threaded application?
+				a) Avoid Starvation
+					Browser--> Network is pulling the data, data is passed to Text REnderer and Image Renderer
+					Eclipse --> Syntax errors, Intellisense are not starved until you complete the program
+				b) ==> Better User Expereince
+				c) Better utilization of available resources
+					Multi-core machines
+					--> Even if its Single Core, CPU is idle when IO operations are happening
+					Better utilization of CPU idle time
+				d) Each task is independent
+
+	----------------------------------	
+
+		What does Java provide for creating Multi-threaded applications?
+			a) 
+			interface Runnable {
+				void run();
+			}
+
+			class SpellCheck implements Runnable {
+				...
+				public void run() {
+					//
+				}
+			}
+
+			b) Thread class 
+				class Thread {}
+
+				Thread control methods:
+					1) start()
+							start0() ==> creates a stack and pushes run() method on that stack
+					2) sleep(long ms)
+					3) yield()
+						pre-empt
+							t1.yield(); t1 will pre-empt so that other thread can get a CPU time
+					4) interrput()
+					5) join()
+
+					Deprecated methods:
+					6) stop()
+					7) suspend()
+					8) resume()
+			-------------------
+
+		Thread Safety:
+			A members is said to be thread safe if it doesnt' get corrupted in mult-threaded env.
+
+		LOCAL Variables --> Stack --> Each thread has a sperate stack --> SAFE
+		instance variables --> HEAP --> threads share heap area --> NOT SAFE
+		static variables --> Class data --> threads share classes --> NOT SAFE
+		
+		immutable objects --> Thread Safe
+				They reside on heap, since they are not changable, no issues with concurrent access
+				VAVR.io provides immutable data containers
+		volatile members --> Thread Safe
+				--> no optimization
+				--> use it with atomic variable
+				--> boolean is atomic
+					it has 0 or 1
+
+					int is not atomic
+						int x = 10;
+						x++; // not a single operation
+						// Hihg endian or low endian
+						32 bits
+						internally 16 bits first is updated into memory as one instruction
+						next instruction updates the remaining part
+
+
+					class Test {
+						volatile boolean flag = true;
+					}
+
+					Thread 1:
+						run() {
+							while(flag) {
+								// run the code
+							}
+						}
+
+					Thread 2:
+						flag = false;
+		-----------------
+
+			List<String> l1 = ....
+
+			List<String> l2 = ....
+
+
+			public class Service {
+				public  void copy(List<String> dest, List<String> src) {
+					synchronized(dest) {
+						synchronized(src) {
+							// operations
+						}
+					}
+				}
+			}
+
+			public class SomeOther {
+				public  List<String> getDups(List<String> one, List<String> two) {
+
+				}
+			}
+
+
+			Service ser = ..
+
+			SomeOther other = ...
+
+			ser.copy(l2,l1);
+
+		=====================
+
+		Every Object has a Monitor/Mutex/Lock
+			i.e., one per object
+
+		Account a1 = new Account(); // lock
+		Account a2 = new Account(); // lock
+
+		=============
+
+		Lunch Break. 
+		Resume @ 3:00
+
+		======================
+
+			How to create threads
+			Thread Safety
+				synchronized
+
+
+			wait() releases the mutex/lock and the thread goes for waitstate until the timeout happens
+			or until some thread notifies.
+
+			sleep() doesn't release the mutex
+		=============================================
+
+		Limitations of using synchronized:
+			a) one mutex / object
+			b) only owner of the mutex can release
+					==> sometimes we need ADMIN like thread to kill other threads and release the lock
+			c) can lead to deadlocks
+			public void transferFunds(Account from, Account to, double amt) {
+				synchronized(from) { // lock on acc1
+					synchronized (to) { // lock on acc2
+						from.withdraw("Withdrawer", amt);
+						to.deposit("Depositor", amt);
+					} // acc2 lock is released
+				} // acc1 lock is released
+			}
+
+			Tx 1
+			ACC500  ===> ACC200 , 5000 amt
+
+			Tx 2
+			ACC200  ===> ACC500 , 7000 amt			
+
+		Issues with creating Threads using new Thread();
+
+		---------------------
+
+		Lock API instead of synchronized
+			Any thread can call unlock()
+
+			@Roles("ADMIN")
+			public void releaseLock() {
+				balLock.unlock();
+			}
+
+			Deadlock resolve using lock API:
+			Old Code:
+			public void transferFunds(Account from, Account to, double amt) {
+				synchronized(from) { // lock on acc1
+					synchronized (to) { // lock on acc2
+						from.withdraw("Withdrawer", amt);
+						to.deposit("Depositor", amt);
+					} // acc2 lock is released
+				} // acc1 lock is released
+			}
+			New Code:
+
+			public void transferFunds(Account from, Account to, double amt) {
+				 try {
+				 	if(from.balLock.tryLock()) { // Tx1 acquires ACC500, Tx2 acquires ACC200
+				 		try {
+				 			if(to.balLock.tryLock()) { // Tx1 tries to get lock on ACC200, Tx2 can get ACC500
+				 				from.withdraw(amt);
+				 				to.deposit(amt);
+				 			}
+				 		} finally {
+				 			to.balLock.unlock();
+				 		}
+				 	}
+				 } finally {
+				 	from.balLock.unlock(); // release ACC500
+				 }
+			}
+
+
+			Tx 1
+			ACC500  ===> ACC200 , 5000 amt
+
+			Tx 2
+			ACC200  ===> ACC500 , 7000 amt		
+
+		==========================================================
+
+		Callable interface and Future 
+
+			interface Runnable {
+				void run();
+			}
+
+			interface Callable<T> {
+				T call() throws Exception;
+			}
+
+			Issues with Runnable:
+				a) It doesn't  return a value
+				b) It doesn't throw an exception
+		============================================================
+
+		Any Questions on threads?
+		===================================================
+
+		Annotations
+			==> Metadata
+				Data about data
+		@Override
+
+		1) Who uses it?
+			a) Compiler
+			b) ClassLoader
+			c) Runtime ==> JRE
+		2) Where can i use it?
+			a) TYPE ==> Class level
+			b) methods
+			c) constructors
+			d) fields
+
+x = name; // getter
+
+
+{
+	"emp_id" : 1,
+	"email" : "dfg@sdf.com"
+}
+
+
+@Table(name="emps") //setter		
+public class Employee {
+	
+	private int id;
+	
+	
+	private String email;
+
+	@Column(name="emp_id", type="NUMERIC(12))
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	@Column(name="email" )
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+	
+}
+
+SQL:
+	create table emps (emp_id NUMERIC(12), email VARCHAR(50)) // DDL
+	insert into emps .... // DML
+
+
+	String s = "Hello";
+
+	s += "World";
+
+	s += "123";
+
+	download annotationexample.zip
+	extract
+
+	Eclipse ==> Import ==> General ==> existing projects into worspace ==> select the extracted folder
+
+	=============================
+	Object o = new String(); // upcasting
+
+
+	List<String> l1 = new ArrayList<>();
+
+	List<String> l2 = new ArrayList<>();
+
+
+	Collections are not co-variant
+	List<Object> l3 = l1; // ERROR
+
+	=============================================
+
+
+	Collections, 
+		If you don't use index based loop, they are not modifable
+
+		It thorws connucrent modifcation exception.
+
+		
+
+
+
+
+
+	
