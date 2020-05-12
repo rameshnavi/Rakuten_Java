@@ -1,4 +1,3 @@
-# Rakuten_Java
 Java Training
 
 
@@ -1548,12 +1547,936 @@ SQL:
 	Collections, 
 		If you don't use index based loop, they are not modifable
 
-		It thorws connucrent modifcation exception.
+		It throws conccurent modifcation exception.
+=================================================================================
 
-		
+	Servlet API and Spring Boot: 
+	Softwares Required:
+		1) Maven
+		2) Postman
+		3) Chrome Browser
+		4) Docker Desktop
+		5) MySQL on Docker or local installation
+	----------------------------------------------------
 
+	Maven and Chrome
 
+	Maven: Tool
+		--> Dependency Management
+		--> setting up build options
 
+	Whenever we build an application our code will depend on many other dependency modules
+	developed by 3rd party or other team members
+	These modules are in the form of "jar" file.
 
+	"customer-module.jar"
+	"spring-boot-starter.jar"
+
+	-----
+		Good parts: manages transitive dependency
+			Project --> a1.2 version	
+
+						internally a1.2 may dependend on b5.6 version
+						again b5.6 can dependet c2.5 and d8.9
+
+			pom.xml
+				<dependencies>
+					<dependency>
+						<group-id>com.rakuten.shopapp</group-id>
+						<artifact-id>customermodule</artifact-id>
+						<version>1.2</version>
+					</dependency>
+---------------------------------------------------
+	
+	Web application development using Servlet API
+	---------------------------------------------
+	Servlet -> Server side Java program
 
 	
+	How does servlet engine map the request to a servlet
+
+	http://server.com/login
+		has to map to LoginServlet
+
+	http://server.com/register
+		has to map to RegisterServlet
+
+	Every application built can have on deployment descriptor
+	prior to Servlet version 2.4 we had web.xml
+
+	Engines reads these entries and creates an Object of LoginServlet:
+	<servlet>
+		<servlet-name>Login</servlet-name>
+		<servlet-class>com.rakuten.prj.web.LoginServlet</servlet-class>
+	<servlet>
+
+
+	<servlet-mapping>
+		<servlet-name>Login</servlet-name>
+		<url-pattern> /login </url-pattern>
+	</servlet-mapping>
+
+	================
+	After servlet version 2.5 we use Annotation instead of web.xml
+
+	@WebServlet("/login")
+	public class LoginServlet extends HttpServlet {
+
+	}
+	========================
+
+	Current Servlet API version is 3.1	
+
+		packaging
+			jar --> java archive: modules, libraries, standalone
+			war --> web archive: Web engines execute only "war" files
+			ear --> Enterprise archive: enterprise application, web component + distributed computing +....
+			pom --> project object model : when you need to combine many modules into one application.
+
+			<dependency>
+					<groupId>javax.servlet</groupId>
+					<artifactId>javax.servlet-api</artifactId>
+					<version>3.1.0</version>
+					<scope>provided</scope>
+			</dependency>
+
+			if we mention scope as "test", this api will not be a part of production
+			<scope>test</scope>
+
+			if we mention scope as "provided", this api will be made available by the env
+			where you code is hoisted:
+			<scope>provided</scope>
+				provided --> aPI will be provided by Jetty, Tomcat, WildFly
+
+			If no scope is mentioned, this module is a part of your build.
+
+			==========================
+
+			we use Maven to manage the lifecyle of project
+				clean, compile, test, package, install
+			Good Part:
+				pom.xml is shared by all the team members [ GITHub Repository]
+
+
+
+	1) Write code
+	2) Compile
+	3) create "war" file
+	4) deploy it on server
+
+	Manually you can deploy the "war" file on server
+
+	Eclipse for JEE 2020
+
+	"webapp" is the folder where all static pages like "html", "css", "images" reside
+	"webapp" is a place where "templates" like "jsp" and "themeleaf" also reside
+
+	Address bar and Hyperlink is always a GET request
+
+
+	To run the application on jetty engine/web container
+
+	Project ==> Run As ==> Maven Build
+	in the goals
+		jetty:run
+
+		or run on different port
+		jetty:run -Djetty.http.port=9999
+
+	[INFO] Started Jetty Server
+
+	http://localhost:8080/
+
+	if you have tomcat plugin
+		goals
+		tomcat:run
+
+
+	=========
+
+	Any changes done to application, need to stop the server and restart [ Maven goals: jetty:run]
+
+	========================
+
+	Handling request data:
+	==========
+
+	Maven goals:
+		$ mvn clean compile package
+
+
+	Servlet Technology has the following components:
+		a) Servlet ==> used as controller to write application logic
+						Flow of application
+		b) JSP ==> Presentation logic
+					it's a template where you an combine static and dynamic content
+					Use this for presentation instead of Servlet
+					like PHP
+				Scriptlets: to write Java Code in JSP page
+				<%
+
+				%>
+				Expression: to write dynamic content in JSP
+				<%= p.getId() %> 
+		c) Listeners
+			i) ServletContextListener
+			gets executed based on certain events happening within the Servlet container
+			/ engine
+			==> Not executed based on execution based on URL pattern
+
+			As soon as the application is deployed on server,
+			ServletContextListener is called
+			This is the place where you can any initialization code for the entire web application
+
+			contextInitialized(..) {
+				// this code executes once when application is deployed 
+			}
+
+			contextDestroyed(...) {
+				// gets executed when undeployed
+			}
+
+			ServletContext can be considered as global object which is accessable to
+			all Servlets/ JSP/ Filters within an appliction.
+
+			Servletcontext generally holds :
+				a) configuration details
+				b) Users who have logged in
+				c) anything global
+
+			ii) HttpSessionListener
+				This listener is useful if we need to track how many sessions are alive
+					==> User Logs in
+							Session is created
+					==> Logout
+							session is destroyed
+		d) Filters
+			Filters are used for interceptor pattern.
+			Generally they contain logic which can be used along with main logic
+			Use cases : Security, Profile, Encrypt/Decprty, Logging
+			They contain logic which cuts-across diffenent classes/ code
+============================================================================
+
+	Servlet, JSP, Listener, Filter [ Annotation based in not supportin order] ==> use web.xml
+		They way you write in web.xml that decides order
+
+============================================================================
+			
+			Spring and Spring Boot Framework.
+
+			Spring framework provides a light weight Container at the core of which it supports
+			dependency injection
+
+		SOLID design priciple
+
+		DI --> Inversion Of Control
+
+		UI <--- Service <--- DAO <--- Database
+
+		Servlet Engine supports dependency Injection: but limited to injecting HttServletRequest,
+		HttpServletResponse
+
+		Spring Container at the core:
+			a) manages the lifecycle of objects
+			b) wires dependencies
+
+		No longer we create objects like "new ProductDao()"
+
+		Old code:
+		interface ProductDao { }
+		class ProductDaoMonogImpl implements ProductDao {
+			DBConnectio con = DriverManager.getConnection(...);
+		}
+
+		class client {
+
+			main() {
+				ProductDao dao = new ProductDaoMonogImpl();
+			}
+		}
+		
+		-----
+
+		With Spring we just register with Spring Container saying that client needs ProducDao
+		and ProductDao needs DB Connection
+
+		Now Spring container injects/wires them
+
+		==================
+		Spring uses metadata [ data about data]
+		XML metadata:
+
+		beans.xml
+
+		<bean id="productDao" class="com.rakuten.prj.dao.ProductDaoMongoImpl" />
+
+		<bean id="orderService" class="com.rakuten.prj.service.OrderService">
+			<property name="dao" ref="productDao" />
+		</bean>
+
+		public class OrderService {
+			ProductDao pdao;
+			public void setDao(ProductDao pd) {
+				this.pdao = pd;
+			}
+		}
+
+		// creates Spring container [ ApplicationContext], BeanFactory is a simpler spring container
+		ApplicationContext ctx = new ClassPathApplicationContext("beans.xml");
+
+
+
+		From Spring framework perspective: any object managed by the spring framework is a bean
+
+		Product p = new Product(); // this is not a bean for Spring FW
+
+		===========================================
+
+		Using Annotations as metadata:
+
+		Spring instantiates objects of class which has one of these sterotyped annoations
+		at class level.
+
+		a) @Component
+		b) @Repository
+		c) @Service
+		d) @Controller
+		e) @RestController
+		f) @Configuration
+
+		Spring uses the below annotations for wiring dependecies:
+		a) @Autowired
+		b) @Inject
+
+		@Repository
+		public class ProductDaoDBImpl implements ProductDao {
+
+		}
+
+		@Service
+		public class OrderService {
+			@Autowired
+			ProductDao productDao; // wire by type
+
+		}
+
+		===
+
+		Eclipse
+			Help ==> Eclipse Market place
+			Search "Spring"
+			Install : Spring Tools 4 ( aka Spring Tool Suite 4)
+
+			Restart eclipse
+
+		=============
+
+		Build Spring boot application using STS start.spring.io service
+
+		creates a main program with:
+		@SpringBootApplication
+			is a combination of:
+			1) @EnableAutoConfiguration
+				this is going to create beans available in "jar" files [ Spring jars]
+				==> Spring helper classes
+			2) @ComponentScan
+				What it does search within classpath under 'com.example.demo' package FOR CLASSES
+				with any of the following annoations:
+					a) @Component
+					b) @Repository
+					c) @Service
+					d) @Controller
+					e) @RestController
+					f) @Configuration
+				and create objects
+			3) @Configuration
+
+
+			first project as Lib:
+				Maven project
+					group-id
+					artificat-id
+					version
+
+				mvn clean compile package install
+
+				install places your code as jar in .m2 folder
+
+			Second project
+				pom.xml
+					<dependensice>
+						<dependecny>
+								previos build
+								group-id
+								artificat-id
+								version
+						<dependency>
+					</dependencies>
+
+			==============
+			Spring Terminolgy
+			Bean: any object managed by spring container is a bean
+			component: a helper object, utility object
+				
+			package com.rakuten.entity;
+
+ 
+==================================================================================
+
+
+
+docker pull mysql
+docker run --name local-mysql –p 3306:3306 -e MYSQL_ROOT_PASSWORD=Welcome123 -d mysql
+
+CONNECT TO A MYSQL RUNNING CONTAINER
+Bash into the running container and run MySQL client.
+Bash into the running MySQL container:
+$ docker exec -t -i <container_name> /bin/bash
+Run MySQL client:
+$ mysql -u “<username>” -p
+
+==========================================================
+	
+	Day 5:
+	Any Questions?
+	1) Servlet / Filter / Listener
+	2) Spring Container and different stero-typed annotations to create instance of bean
+	3) Wiring dependencies using @Autowired
+
+	XML based we can confiure auto-wire="byType", auto-wire="byName"
+	XML supports setter depedency injection and consructor dependency inject
+
+	Annotation based DI is based on type.
+		1) Field Level
+		@Autowired
+		ProductDao productDao;
+
+		based on ByteCode Instrumentation. ASM.
+		Spring uses CGLIB/ java-assist for Bytecode instrumention
+
+		2) method level:
+
+		@Autowired
+		public void someMethod(ProductDao pdao) {
+			pdao.setExtraInfo(...);
+		}
+
+		3) Constructor
+
+			@Autowired
+			OrderService(ProductDao productDao) {
+
+			}
+
+			Note: Constructor DI can lead to cyclic dependency
+			A-->B-->A
+
+			DI if your object is tightly coupled to dependency
+
+	Annotation based DI is based on name, we use @Qualifier
+
+	================
+
+	Docker Desktop for Mac/Windows
+
+
+	@SpringBootApplication
+	@EnableAutConfiguration
+	@ComponentScan
+
+	----
+	Spring Boot is highly opiniated, it assumes few classes will be used by most of the
+	developers and creates out of the box.
+
+	Run As -> Run Configurations
+	Program arguments:
+	--debug
+	
+	Specify to Spring boot that I don't need certain objects of classes by
+	explicitly configuring "exclude"
+	@SpringBootApplication(exclude = {AopAutoConfiguration.class,TaskExecutionAutoConfiguration.class})
+
+	---------------------------
+	@Configuration, @Bean
+
+	Configuration Properties:
+	How Spring resolves properties
+		a) program arguments or VM arguments
+			--debug --email=banu@lucidatechnologies.com
+
+		b) if the property is not passed as program arguments [ Command Line]
+			
+
+			i) application-profile.properties
+				Example:
+				
+				it picks the property from
+				application-dev.properties
+					server.port=1234
+			ii) if the property is not found in profile specific properties file
+				application.properties
+					server.port=8080
+				Program Arguments:
+				--email=banu@lucidatechnologies.com  --spring.profiles.active=dev
+
+	-----------------
+
+	There might be many instances of programmatically creating objects and those objects
+	can be handed over to spring to manage
+
+	For Example:
+	DatSource --> Pool of database connection
+
+	@Bean
+	public DataSource getDataSource() {
+		CommonPoolDataSource ds = new ...
+		ds.setPoolSize(100);
+		ds.setUrl("url of database");
+		ds.setUserName(..);
+		ds.setPassword(...);
+		return ds;
+	}
+
+
+	we can't do this:
+
+	@Component
+	public class DataSource {
+
+	}
+		==> this class is a part of library, I can't modify the class
+
+
+
+	@Repository
+	@ConditionalClass(com.mysql.jdbc.Driver.class)
+	public class EmployeeDaoMySQLImpl implements EmployeeDao {
+
+	}
+
+	@Repository
+	@ConditionalClass(oracle.jdbc.Driver.class)
+	public class EmployeeDaoOracleImpl implements EmployeeDao {
+
+	}
+
+	====================================================================
+
+	Spring Boot RESTful web services and Spring Data JPA
+	------------------------------------------------------
+
+	ORM --> Object Relational Mapping
+
+	JPA --> Java Persistence API is a specification to use ORM
+		because ORMs are provided by various vendors
+
+		Hibernate ORM ---> JBoss --> RedHat
+		TopLink --> Oracle
+		KODO -->BEA --> Oracle
+		OpenJPA --> Apache
+
+		ORM simplifies CRUD operations on RDBMS
+
+	-------------------------------------------------------
+	Online shopping application RESTful API with JPA and MySQL.
+	Build Spring boot application with the following dependencies:
+		spring-boot-starter
+		spring-boot-web
+		spring-data-jpa
+		mysql
+
+	---
+
+	EntityManager manages entities. Entity class should be marked as @Entity
+
+	then Primary key field should be marked as @Id
+
+	public interface ProductDao extends JpaRepository<Product, Integer> {
+
+	}
+
+	spring data jpa generates a class with CRUD operations for this interface:
+
+	@Repository
+	public class ProductDaoJpaImpl implments ProductDao {
+		List<Product> findAll() {
+			select code
+		}
+		save(Product p) {
+			insert cde
+		}
+
+		findOne(Integer i) {
+
+		}
+	}
+
+	Spring DATA JPA will generate commit/rollback code if we put @Transactional
+
+	@Transactional
+	save(Product p) {
+			insert code
+
+		}
+
+		if inside this method no exception occurs it commits
+		Expcetions occurs it rolls back
+	=======================================================================
+
+	RESTful Web services:
+
+
+	DAOs are generally one per table
+		ProductDao
+		CustomerDao
+		OrderDao
+	Service are generally one per actor
+		CustomerService
+		AdminService
+
+
+
+	Steps to install mysql on docker:
+
+	1) pull the image
+	docker pull mysql
+
+	2) Run the instance
+		docker run --name local-mysql –p 3306:3306 -e MYSQL_ROOT_PASSWORD=Welcome123 -d mysql
+
+	3) docker container ls
+
+	4) CONNECT TO A MYSQL RUNNING CONTAINER
+			Bash into the running container and run MySQL client.
+			Bash into the running MySQL container:
+
+		$ docker exec -t -i local-mysql /bin/bash
+		Run MySQL client:
+		$ mysql -u root -p
+
+		mysql>
+
+
+		===
+		spring.jpa.hibernate.ddl-auto = update
+
+		DDL ==> Data Definition Language?
+
+		CREATE TABLE, ALTER TABLE, DROP TABLE
+
+		"update"
+			==> If a table mapped to entity exists ==> use it
+			==> If doesn't exist create it
+
+		"create"
+			 ==> every run drop existing tables and re-create
+			 	useful in testing environment
+
+		======
+
+		spring.jpa.properties.hibernate.dialect = org.hibernate.dialect.MySQL5Dialect
+
+		inform JPA to generate SQL for MySQL
+
+		===
+
+		mysql> use rakuten_trg_2020;
+		mysql> show tables;
+		mysql> select * from products;
+
+		=================================================================
+
+		RESTful Web Services:
+
+		A resource resides on server [ database, files, tangible things like printer]
+
+		REST
+			Represntational State Transfer
+			Resource can be served in various representation [ JSON, XML, CSV, ...]
+
+		RESTful web services can be used using HTTP protocol
+			==> uses URI to identify the resource
+			==> uses HTTP methods for verbs / actions
+
+		Example:
+			GET
+				http://localhost:8080/api/products
+
+				get all products
+
+			Use extra path parameter for generally selecting based on ID
+			GET
+				http://localhost:8080/api/products/5
+
+				get product whose id is 5
+			GET
+				http://localhost:8080/api/products?page=1&size=10&category=mobile
+
+				get products based on query parameters [ Filtering ]
+
+
+				---
+				GET doesn't contain a payload
+
+			----------
+			POST
+				http://localhost:8080/api/products
+
+				Payload contains the new product which has to be added to "products" resource
+
+			---------
+
+			DELETE
+				http://localhost:8080/api/products/5
+
+				delete a product whose id is 5
+				No payload
+			---------
+
+			PUT
+				http://localhost:8080/api/products/5
+				Payload contains the modified product info which has to be updated to "products" resource
+
+		CRUD
+		CREATE --- POST
+		READ -- GET
+		UPDATE -- PUT/PATCH
+		DELETE -- DELETE
+
+		================
+
+		RESTful web services uses the following HTTP headers to identity the represntation
+
+		accept: application/json
+			server has to serve the content in "json" format
+
+		content-type: text/xml
+			client is sending the represntion in "xml" format to server
+
+		===========
+
+		Spring Boot comes with preloaded content negotiation handlers for JSON
+			ContentNegotiationHandlers
+				Java <--> Representation
+
+			for Java <--> JSON we have the following libraries:
+				a) Jackson
+				b) Jettison
+				c) GSON
+				d) Moxy
+			Similarly for XML ==> JAXB
+
+		===========================
+
+		install POSTMAN: Testing REST API
+
+		@ResponseBody converts Java --> Representation based on "accept" header
+		application/json
+
+		Product p = new Product(645, "Hp Laptop", 135000.00, 100);
+		ObjectMapper mapper = new ObjectMapper(); // jackson
+		mapper.writeValue(System.out, p);
+		{"id":645,"name":"Hp Laptop","price":135000.0,"quantity":100}
+
+
+		POSTMAN
+		--------
+		GET  http://localhost:8080/api/products
+		or
+		GET http://localhost:8080/api/products/4
+
+		Headers:
+		accept  	application/json
+
+		---------------------------------------------
+
+		POST: 
+		http://localhost:8080/api/products
+		Headers:
+		accept  			application/json
+		content-type		application/json
+
+		body:
+		 {
+		 	"name": "Samsung Joy",
+		    "price": 125000.0,
+		    "quantity": 100
+		 }
+
+	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@JoinColumn(name="order_id")
+	private List<Item> items = new ArrayList<Item>();
+
+	Witout CASCADE:
+		Order o1
+			item1
+			item2
+			item3
+		save(o1);
+		save(item1);
+		save(item2);
+		save(item3);
+
+		or
+		delete(item3);
+		delete(item2);
+		delete(item1);
+		delete(o1);
+
+	With CASCADE:
+			Order o1
+			item1
+			item2
+			item3
+
+			save(o1); // it saves its child items
+			delete(o1); // deletes all its items
+---------------------
+	
+
+	By default fetch = FetchType.LAZY
+	List<Order> orderDao.findAll();
+
+	order o1
+	order o2
+	order o3;
+
+	using this order i need to hit DB once again to get its items
+	get items of order o1
+	get items of order o2
+
+
+	fetch = FetchType.EAGER
+		List<Order> orderDao.findAll();
+		gets orders and joins on items and get the results
+		fetched orders also contain items
+
+	By default:
+		ManyToOne is EAGER fetching
+		OneToMany is LAZY fetching
+
+	-------
+
+	Not writing CustomerDao; insert in the backend
+
+	ItemDao is not required, because handling Order cacscades Items
+
+
+	JSON data for Order payload POST request
+
+	{
+		"customer": {
+			"email" : "a@rakuten.com"
+		},
+		"items" : [
+			{
+				"product" : { "id": 4 },
+				"qty": 1,
+				"amount": 120000.00
+			},
+			{
+				"product" : { "id": 3 },
+				"qty": 2,
+				"amount": 1000.00
+			}
+
+		],
+		"total" : 123000.00
+	}
+=============================================================
+
+	Unit Testing
+		A single compilable unit in Java is a class
+		Each class should have a test code [ Therotically specking]
+		But generally we don't test entity class
+
+		Norammly we need to write test code for service, controller, utility
+		In our Spring boot data jpa no need to test Repository code, because it is generated by Spring
+
+		Unit Tesing frameworks for Java: JUnit, TestNG
+
+		We many a times need to test code by mocking other APIs
+
+		Controller --> Service --> DAO --> Database
+
+		Controller is dependent on service,
+		service is dependent on DAO,
+		....
+
+		Mocking API is required to mock dependecies.
+		Spring boot by default adds Mockito [ Mocking API]
+		easymock, JMock are some other mocking apis for java
+
+		To test Controllers we need to mock Service
+
+		to test service we mock DAO
+
+		Mockito and Spring unit testing:
+		a)
+			@RunWith(SpringRunner.class)
+			Creates Spring container for testing
+
+		b) @WebMvcTest(ProductController.class)
+			Which controller code you are testing
+
+
+		c) @MockBean
+			private OrderService service;
+
+			Create a mock implementation of OrderService;
+
+		d) 	@Autowired
+				private MockMvc mockMvc;
+
+			we are mocking the complete Spring MVC framework
+			Internally we DispatcherServlet, HandlerMapping
+
+		e) Testing code
+
+		Unit testing frameworks inokes methods which has @Test
+	 
+	@Test
+	public void getProductsTest() throws Exception {
+		List<Product> products = 
+				Arrays.asList(new Product(1, "a",  500.00, 100),
+				new Product(2, "b",  1500.00, 100));
+		// mocking
+		when(service.getProducts()).thenReturn(products);
+
+		// @formatter:off
+		mockMvc.perform(get("/api/products"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$", hasSize(2)))
+				.andExpect(jsonPath("$[0].id", is(1)))
+				.andExpect(jsonPath("$[0].name", is("a")))
+				.andExpect(jsonPath("$[1].id", is(2)))
+				.andExpect(jsonPath("$[1].name", is("b")));
+		// @formatter:on
+		verify(service, times(1)).getProducts();
+		verifyNoMoreInteractions(service);
+
+	}
+	===================================================================
+	Swagger:
+	Swagger is an open-source software framework backed by a large ecosystem of tools that helps developers design, build, document, and consume RESTful web services
+
+		==> expose end points
+		==> expose verbs
+		==> How the representation has to be handled [ payload , return type]
+		==> can also use it as a test tool
+	================================
+
+
+		Spring Configuration
+		Spring data jpa
+		Spring RESTful webservices
+		Mockito to test Spring Controller
+		Swagger : Document APIs
+
+		---------------------------------
+		RestTemplate/ WebClient
+		HATEOAS
+		Spring Security
+		SOAP
+		Spring Cloud
+		-------------------------------------
