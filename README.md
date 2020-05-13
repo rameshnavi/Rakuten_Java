@@ -2466,11 +2466,88 @@ $ mysql -u “<username>” -p
 		==> can also use it as a test tool
 	================================
 
+		Spring Cloud:
+	A) discovery-service
+		Eureka Server:
+			1) Add eureka-server dependecy
+			2) @EnableEurekaServer
+			3) 
+	spring.application.name=discovery-service
+	server.port=3000
+	eureka.client.registerWithEureka=false
+	eureka.client.fetchRegistry=false
+	eureka.instance.hostname=localhost
+	eureka.client.serviceUrl.defaultZone=http://${eureka.instance.hostname}:${server.port}/eureka/
+	4) http://localhost:3000/
+
+	B) Customer-service
+		1) web dependency, Eureka Discovery Client 
+		2)@EnableDiscoveryClient
+		3) 
+		spring.application.name=customer-service
+		server.port=3001
+		eureka.client.serviceUrl.defaultZone=http://localhost:3000/eureka/
+
+		4) Customer, CustomerController Get all, get by id
+
+	C) Order-service
+			getOrderByID
+			getAllORders(@RequestParam(required=false) int custId) return ResponseWrapper<List<Order> --> environment.getProperty("server.port");
+
+		Spin up your discovery-service, followed by the customer-service and order-service applications, then open the Discovery Service’s Eureka Dashboard - you should see that both services have been registered.
+
+	D) Routing and Server-Side Load Balancing with Zuul
+		gateway-service with Zuul and Eureka Discovery Client as dependencies
+
+		1) 
+spring.application.name=gateway-service
+server.port=8080
+eureka.client.serviceUrl.defaultZone=http://localhost:3000/eureka/
+
+zuul.routes.customers.path=/customers/**
+zuul.routes.customers.serviceId=customer-service
+
+zuul.routes.orders.path=/orders/**
+zuul.routes.orders.serviceId=order-service
+
+
+	2) @EnableZuulProxy
+@EnableDiscoveryClient
+
+	http://localhost:8080/customers
+	http://localhost:8080/orders
+	===================
+	Inter-Service Communication
+
+	HTTP Clients with Feign
+	Add Spring Cloud OpenFeign dependency to Customer
+	<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-openfeign</artifactId>
+			<version>2.2.2.RELEASE</version>
+		</dependency>
+
+		@EnableFeignClients
+
+		
+		=======
+
+		docker run -d --name=prometheus -p 9090:9090 -v C:\prometheus\prometheus.yml:/etc/prometheus/prometheus.yml prom/prometheus --config.file=/etc/prometheus/prometheus.yml
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-registry-prometheus</artifactId>
+		</dependency>
+		ab -n 500 -c 100 http://localhost:8080/api/products
 
 		Spring Configuration
 		Spring data jpa
 		Spring RESTful webservices
 		Mockito to test Spring Controller
+
 		Swagger : Document APIs
 
 		---------------------------------
@@ -2480,3 +2557,400 @@ $ mysql -u “<username>” -p
 		SOAP
 		Spring Cloud
 		-------------------------------------
+docker start local-mysql 
+ 
+
+C:\Users\banup>docker exec -t -i local-mysql /bin/bash
+root@7d998d751844:/# mysql -u root -p
+Enter password:
+===========
+	Day 6:
+	======
+
+		public interface ProductDao extends JPARepository<Product,Integer> {
+
+			public List<Product> findByCategory(String category);
+			public List<Product> findByCategoryAndPrice(String category, double price);
+
+			// JPQL uses class and fields instead of table and columns
+			@Query("select p from Product p where p.price between :p1 and :p2")
+			public List<Product> getBetweenRange(@QueryParam("p1") double d1, @QueryParam("p1") double d2);
+		}
+
+
+
+		public List<Product> findByCategory(String category);
+			generates:
+				select * from products where category = ?
+
+		public List<Product> findByCategoryAndPrice(String category, double price);
+			generates:
+				select * from products where category = ? and price = ?	
+
+
+		@Query("select o from Order o left outer join o.customer = :cust")
+		public List<Object[]> sampleJoin(@QueryParam("cust") int custId);
+
+			// Object[0] order
+			// object[1] customer
+	==============================================================================
+
+	docker container ls
+
+	C:\Users\banup>docker exec -t -i local-mysql /bin/bash
+	root@7d998d751844:/# mysql -u root -p
+	Enter password:
+
+
+	if mysql is down
+	docker start mysql [local-mysql]
+
+	===================================================
+
+		Health Indicators for Spring boot application
+
+		Spring Acutator for health check [textual info]
+		It also allows 3rd tools to scrape your data and generate graphs [ Prometheus, Graffana]
+
+
+		place this anywhere in your machine at accessable location
+
+		prometheus.yml
+		# my global config
+		global:
+		  scrape_interval:     15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+		  evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.
+		  # scrape_timeout is set to the global default (10s).
+
+		# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+		rule_files:
+		  # - "first.rules"
+		  # - "second.rules"
+
+		# A scrape configuration containing exactly one endpoint to scrape:
+		scrape_configs:
+		  - job_name: 'spring-actuator'
+		    metrics_path: '/actuator/prometheus'
+		    scrape_interval: 5s
+		    static_configs:
+		      - targets: ['192.168.1.15:8080']
+
+
+		    Lists all health indicators
+			http://localhost:8080/actuator
+
+			http://localhost:8080/actuator/prometheus
+
+			=============================
+
+			command prompt>
+			docker run -d --name=prometheus -p 9090:9090 -v C:\prometheus\prometheus.yml:/etc/prometheus/prometheus.yml prom/prometheus --config.file=/etc/prometheus/prometheus.yml	
+
+
+			Apache Benchmark:
+			ab -n 1000 -c 100 http://localhost:8080/api/products
+
+			================================================
+			Level 3 Restful Web Services:
+			HATEOAS : Hypermedia As The extension of Application State
+
+				Every data served should be a hypermedia
+
+				before HATEOAS:
+					Product info:
+						{
+							"id" : 1,
+							"name": "test",
+							"price" : 344.44
+						}
+
+					HATEOAS provides hypermedia
+						Product info:
+						{
+							"id" : 1,
+							"name": "test",
+							"price" : 344.44,
+							"_links":
+								[
+									"_self" : "http://localhost:8080/api/products/1",
+									"addToCart": "http://localhost:8080/api/cart",
+									"description" : "http://localhost:8080/api/products/1/details"
+								]
+						}
+			=======================================
+
+			https://github.com/BanuPrakash/Rakuten_Java
+			download hateoasexample.zip
+			extract
+			import existing maven projects into your workspace
+
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-starter-hateoas</artifactId>
+			</dependency>
+
+			for Hateoas:
+				every model/entity/domain class should be wrapped into EntityModel[Model + Links]
+
+
+			Product ==> Model
+
+			EntityModel<Product> prd ==> this is model + links
+
+			List<Product> becomes CollectionModel<List<Product>>
+
+			RepresentationModel is the base class for EntityModel and CollectionModel
+
+
+			By default HATEOAS uses HAL ==> Hypermedia As Language
+					HAL limitation is it provides only "links" and not "verbs"
+
+					HAL_FORM adds more details to links [ verbs]
+
+		=================================================================================
+
+		Spring Security
+		---------------
+			1) 
+			once you add spring-security related dependencies
+			out of the box it has added login / logout pages
+			http://localhost:8080/logout
+
+			added bootstrap CSS
+			and made every resource a protected
+			it also creates a default user with password
+
+			username: user
+			password: generatedpwd
+
+
+			------------
+
+			Security
+				1) default generated password with "user" as user created
+				2) in application.properties we added user/password
+					spring.security.user.name=test
+					spring.security.user.password=secret
+				3) used InMemory users [ Like HashMap]
+				4) jdbcAuthentication  [ users are stored in database]
+				5) Passwordencoders [ Noop, Bcrypt]
+				6) Method Level Security
+
+				Login.html, logout.html
+
+			--------
+
+			RestTemplate can be used as a client to consume RestAPI
+			WebClient is also a client to consume RESTAPI
+
+			spring.security.user.name=test
+			spring.security.user.password=secret
+
+			Simple Example:
+			RestTemplate template = new RestTemplate();
+			Product p = 
+			template.getForObject("http://localhost:8080/api/products/2", Product.class); 
+			System.out.println(p.getName() + "," + p.getPrice());
+			// JSON data
+			String result = template.getForObject("http://localhost:8080/api/products", String.class);
+
+		RestTemplate template = new RestTemplate();
+		HttpHeaders headers = new HttpHeaders();
+
+		headers.setAccept(Arrays.asList(new MediaType[] { MediaType.APPLICATION_JSON }));
+		// Request to return JSON format
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		String auth = "test" + ":" + "secret";
+		byte[] encodedAuth = Base64.encodeBase64(auth.getBytes(Charset.forName("US-ASCII")));
+		String authHeader = "Basic " + new String(encodedAuth);
+		headers.set("Authorization", authHeader);
+	 
+		HttpEntity<String> entity = new HttpEntity<String>(headers);
+		ResponseEntity<String> response = template.exchange("http://localhost:8080/api/products/2", HttpMethod.GET,
+				entity, String.class);
+
+//		String result = template.getForObject("http://localhost:8080/api/products", String.class);
+		System.out.println(response.getBody());
+
+		/*
+		 * Product p = template.getForObject("http://localhost:8080/api/products/2",
+		 * Product.class); System.out.println(p.getName() + "," + p.getPrice());
+		 */
+		 
+			
+		 RESTful Webservices this type of Authentication is not recommended, instead use "token"
+======================================================
+
+
+		 JWT
+
+
+		 Function<K,V> a = (x) -> return x * 10;
+
+		 a.apply(5); // 50
+
+		 [1,2,3,5].forEach(p -> {
+		 	System.out.println(p);
+		 });
+
+
+		 [1,2,3,4].forEach(System.out::println);
+
+		  public Date extractExpiration(String token) {
+    		    return extractClaim(token, Claims::getExpiration);
+    	}
+
+    	 public Date extractExpiration(String token) {
+      		  return extractClaim(token, Claims::getExpiration);
+    	}
+
+    	Claims::getExpiration
+
+    	data -> Claims.getExpiration(data);
+
+    	======================
+
+    	POST http://localhost:8080/authenticate
+
+    	Headers:
+    		accept: application/json
+    		content-type: application/json
+
+    	Body: raw
+    	{
+    		"username" : "banu",
+    		"password" : "prakash"
+
+    	}
+
+    	Response:
+
+    	{
+    "jwt": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJiYW51IiwiZXhwIjoxNTg5NDAyNTgyLCJpYXQiOjE1ODkzNjY1ODJ9.eComJa8b_nJgjnwIJIEl9GIVdVvkUpg6zDEw9C7CSUY"
+}	
+
+	============
+
+	REquest to protected resource:
+	GET http://localhost:8080/hello
+
+	Accept:
+	Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJiYW51IiwiZXhwIjoxNTg5NDAyNTgyLCJpYXQiOjE1ODkzNjY1ODJ9.eComJa8b_nJgjnwIJIEl9GIVdVvkUpg6zDEw9C7CSUY
+
+ 	===========================
+
+
+ 	How Spring boot helps build microservices
+ 		Spring boot provides additional apis ==> Netflix OSS for building Microservice based app
+
+ 	Spring-cloud api ==> Netflix OSS
+
+ 		1) Discoverable
+ 			Make our services discoverable
+ 			Build spring boot app with EurekaServer dependency
+ 			add the following properties:
+ 				spring.application.name=discovery-service
+				server.port=3000
+				eureka.client.registerWithEureka=false
+				eureka.client.fetchRegistry=false
+				eureka.instance.hostname=localhost
+				eureka.client.serviceUrl.defaultZone=http://${eureka.instance.hostname}:${server.port}/eureka/
+
+
+ 			Then access the server registry:
+ 			http://localhost:3000/
+
+ 		2) Create Microservices [ Discovery client] and register with EurekaServer
+ 			2.a) create customer-service
+
+ 			Customer-service
+		1) web dependency, Eureka Discovery Client 
+		2)@EnableDiscoveryClient
+		3) 
+		spring.application.name=customer-service
+		server.port=3001
+		eureka.client.serviceUrl.defaultZone=http://localhost:3000/eureka/
+
+		4) Customer, CustomerController Get all, get by id
+
+
+
+ 			2.b) create order-service
+ 				add web dependency and eureka discovery client
+
+
+ 				=
+
+ 		Routing and Server-Side Load Balancing with Zuul
+	gateway-service with Zuul and Eureka Discovery Client as dependencies
+
+		1) 
+spring.application.name=gateway-service
+server.port=8080
+eureka.client.serviceUrl.defaultZone=http://localhost:3000/eureka/
+
+zuul.routes.customers.path=/customers/**
+zuul.routes.customers.serviceId=customer-service
+
+zuul.routes.orders.path=/orders/**
+zuul.routes.orders.serviceId=order-service
+
+
+	2) @EnableZuulProxy
+@EnableDiscoveryClient	
+
+	http://localhost:8080/customers
+		internally checks Eureka for customer-service instance location
+		delegate to
+		http://localhost:3001/
+
+	we can start discovery-service, customer-service, order-service, gateway-service
+
+
+	===========
+
+		SOAP
+			== Envelop on XML data
+				HEADER, BODY, PROPERTY
+
+			==> uses XSD to validate/ document definition
+				DTD and XSD are used to define a XML document
+
+				XSD understands simple types and complex types
+
+			==> xjc complies schema and creates Java mapping for XML
+Request:
+<Envelope xmlns="http://schemas.xmlsoap.org/soap/envelope/">
+    <Body>
+        <GetStudentDetailsRequest xmlns="http://banu.com/students">
+            <id>1</id>
+        </GetStudentDetailsRequest>
+    </Body>
+</Envelope>	
+
+Response:
+
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+    <SOAP-ENV:Header/>
+    <SOAP-ENV:Body>
+        <ns2:GetStudentDetailsResponse xmlns:ns2="http://banu.com/students">
+            <ns2:StudentDetails>
+                <ns2:id>0</ns2:id>
+                <ns2:name>Banuprakash</ns2:name>
+                <ns2:email>banu@lucidatechnologies.com</ns2:email>
+            </ns2:StudentDetails>
+        </ns2:GetStudentDetailsResponse>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+
+=======================================
+
+
+	Client code:
+
+	command> mvn generate-sources
+	=============
+
+	Upload
+		slides
+		activemq
